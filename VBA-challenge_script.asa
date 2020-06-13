@@ -95,9 +95,11 @@ ws.Range("R4").Value = highest_volume
 'find highest % increase'
 greatest_increase = Application.WorksheetFunction.Max(summary_range_percent)
 ws.Range("R2").Value = greatest_increase
+ws.Range("R2").NumberFormat = "0.00%"
 'find highest % decrease'
 greatest_decrease = Application.WorksheetFunction.Min(summary_range_percent)
 ws.Range("R3").Value = greatest_decrease
+ws.Range("R3").NumberFormat = "0.00%"
 ticker_totalvol = 0
 Next ws
 End Sub
