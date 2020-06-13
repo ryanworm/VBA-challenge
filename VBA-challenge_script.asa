@@ -1,0 +1,104 @@
+Sub Ticker_Tape()
+Dim ws As Worksheet
+'set worksheet count = number of worksheets in active workbook'
+For Each ws In Worksheets
+'headers
+ws.Range("J1").Value = "Ticker"
+ws.Range("K1").Value = "Total Change"
+ws.Range("L1").Value = "Percent Growth"
+ws.Range("M1").Value = "Total Volume"
+'Max/Min Summary Headers
+ws.Range("Q2").Value = "Greatest % Increase"
+ws.Range("Q3").Value = "Greatest % Decrease"
+ws.Range("Q4").Value = "Greatest Total Volume"
+'find table length, ' set type of value for column length, ticker, ticker volume
+Dim summary_table_row As Integer
+Dim ticker_label As String
+Dim ticker_totalvol As Double
+Dim percent_change As Double
+Dim year_change As Double
+Dim change As Double
+Dim start As Long
+Dim j As Integer
+j = 0
+ticker_totalvol = 0
+start = 2
+change = 0
+summary_table_row = 2
+end_row = ws.Cells(1, 1).End(xlDown).Row
+'looping through columns'
+For i = 2 To end_row
+    If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+        ticker_totalvol = ticker_totalvol + ws.Cells(i, 7).Value
+            If ticker_totalvol = 0 Then
+                ' print the results
+                'print ticker
+                ws.Range("J" & 2 + j).Value = ws.Cells(i, 1).Value
+                ws.Range("K" & 2 + j).Value = 0
+                ws.Range("L" & 2 + j).Value = "%" & 0
+                ws.Range("M" & 2 + j).Value = 0
+            Else
+            '' Find First non zero opening value
+                'opening value = 0
+                If ws.Cells(start, 3).Value = 0 Then
+                    For find_open_value = start To i
+                        If ws.Cells(find_open_value, 3).Value <> 0 Then
+                            start = find_open_value
+                            Exit For
+                        End If
+                    'next row?
+                    Next find_open_value
+            End If
+        year_change = (ws.Cells(i, 6).Value - ws.Cells(start, 3).Value)
+        percent_change = Round((year_change / ws.Cells(start, 3) * 100), 2)
+        ' start of the next stock ticker
+        start = i + 1
+        ' print the results to a separate worksheet
+        ws.Range("J" & 2 + j).Value = ws.Cells(i, 1).Value
+        ws.Range("K" & 2 + j).Value = Round(year_change, 2)
+        ws.Range("L" & 2 + j).Value = "%" & percent_change
+        ws.Range("M" & 2 + j).Value = ticker_totalvol
+        End If
+        change = 0
+        ticker_totalvol = 0
+        year_change = 0
+        j = j + 1
+    Else
+        ticker_totalvol = ticker_totalvol + ws.Cells(i, 7).Value
+    End If
+Next i
+'color formating
+
+Dim k As Double
+Dim summary_last_row As Double
+summary_end_row = ws.Cells(1, 11).End(xlDown).Row
+
+For k = 2 To summary_end_row
+    If ws.Cells(k, 11).Value > 0 Then
+        ws.Cells(k, 11).Interior.ColorIndex = 4
+    ElseIf ws.Cells(k, 11).Value < 0 Then
+        ws.Cells(k, 11).Interior.ColorIndex = 3
+    ElseIf ws.Cells(k, 11).Value = 0 Then
+        ws.Cells(k, 11).Interior.ColorIndex = 15
+    End If
+Next k
+
+'challenge exercises
+'set summary rows'
+Dim summary_range_total As Range
+'set ranges'
+Set summary_range_total = ws.Range("M" & summary_table_row, "M" & summary_end_row)
+Set summary_range_percent = ws.Range("L" & summary_table_row, "L" & summary_end_row)
+'find highest total volume'
+highest_volume = Application.WorksheetFunction.Max(summary_range_total)
+ws.Range("R4").Value = highest_volume
+'find highest % increase'
+greatest_increase = Application.WorksheetFunction.Max(summary_range_percent)
+ws.Range("R2").Value = greatest_increase
+'find highest % decrease'
+greatest_decrease = Application.WorksheetFunction.Min(summary_range_percent)
+ws.Range("R3").Value = greatest_decrease
+ticker_totalvol = 0
+Next ws
+End Sub
+
